@@ -1,11 +1,11 @@
 import numpy as np
-from matplotlib import pyplot as plt
 
 from simulate import simple_2d_step, simple_2d_get_initial
+from visualize import simple_2d_visualize_logs
 
 
 def simple_2d_run():
-    commands = np.ones([99, 2]) * np.array([[0.0, 1.0]])
+    commands = np.ones([500, 2]) * np.array([[0.2, 1.0]])
     dt = 0.05
     state, particles = simple_2d_get_initial()
 
@@ -20,15 +20,5 @@ def simple_2d_run():
 
 
 if __name__ == '__main__':
-    s_log, p_log = simple_2d_run()
-
-    for s, p in zip(s_log, p_log):
-        # set the aspect ratio of the plot
-        plt.xlim(-5, 5)
-        plt.ylim(-5, 5)
-        plt.gca().set_aspect('equal', adjustable='box')
-        # plot the particles
-        plt.scatter(*p[:,:2].T, c='b', s=1)
-        # and the true state
-        plt.scatter(s[0], s[1], c='r')
-        plt.show()
+    logs = simple_2d_run()
+    simple_2d_visualize_logs(logs)
