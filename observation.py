@@ -5,7 +5,7 @@ from dynamics import simple_2d_dynamics
 
 
 # accx, accy, gyro, mag
-simple_2d_observation_cov = np.diag([0.5, 0.5, 0.1, 0.1,])
+simple_2d_observation_cov = np.diag([0.05, 0.05, 0.01, 0.01,])
 
 # for simulation
 def simple_2d_acc_gyro_mag_sample(state, command):

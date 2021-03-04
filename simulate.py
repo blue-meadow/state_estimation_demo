@@ -24,8 +24,8 @@ def simple_2d_step(state, command, particles, dt):
     # ----------------- and this update state estimator -----------------
 
     # get function to resample particles
-    resample = get_particle_filter_resample(
-        simple_2d_acc_gyro_mag_likelihood, simple_2d_transition_cov)
+    resample = get_particle_filter_resample(simple_2d_acc_gyro_mag_likelihood,
+        simple_2d_dynamics, simple_2d_transition_cov, dt)
 
     # resample the particles based on the observation
     new_particles = resample(particles, observation, command)
