@@ -5,8 +5,11 @@ from visualize import simple_2d_visualize_logs
 
 
 def simple_2d_run():
-    commands = np.ones([500, 2]) * np.array([[0.2, 1.0]])
-    dt = 0.05
+    T = 1000   # number of simulation steps
+    dt = 0.05 # timestep
+    time_log = np.arange(T) * dt
+    commands = np.ones([T-1, 2]) * np.array([[0.5, 2.0]])
+
     state, particles = simple_2d_get_initial()
 
     state_log = [state]
@@ -16,7 +19,7 @@ def simple_2d_run():
         state_log.append(state)
         particle_log.append(particles)
 
-    return np.array(state_log), np.array(particle_log)
+    return time_log, np.array(state_log), np.array(particle_log)
 
 
 if __name__ == '__main__':

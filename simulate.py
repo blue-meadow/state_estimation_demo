@@ -8,7 +8,7 @@ from particle_filter import get_particle_filter_step, get_initial_particles
 
 def simple_2d_get_initial():
     state = np.zeros(6)
-    particles = get_initial_particles(500, state, simple_2d_transition_cov)
+    particles = get_initial_particles(1000, state, simple_2d_transition_cov)
     return state, particles
 
 def simple_2d_step(state, command, particles, dt):
