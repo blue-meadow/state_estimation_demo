@@ -13,7 +13,6 @@ def simple_2d_run():
     particle_log = [particles]
     for command in commands:
         state, particles = simple_2d_step(state, command, particles, dt)
-        print(particles)
         state_log.append(state)
         particle_log.append(particles)
 
@@ -22,10 +21,14 @@ def simple_2d_run():
 
 if __name__ == '__main__':
     s_log, p_log = simple_2d_run()
+
     for s, p in zip(s_log, p_log):
+        # set the aspect ratio of the plot
         plt.xlim(-5, 5)
         plt.ylim(-5, 5)
         plt.gca().set_aspect('equal', adjustable='box')
-        plt.scatter(*p[:,:2].T, c='b')
+        # plot the particles
+        plt.scatter(*p[:,:2].T, c='b', s=1)
+        # and the true state
         plt.scatter(s[0], s[1], c='r')
         plt.show()

@@ -6,29 +6,28 @@ def get_initial_particles(N, initial_state, transition_cov):
     return multivariate_normal.rvs(mean=initial_state,
         cov=transition_cov, size=N)
 
-def get_particle_filter_resample(H_likelihood, dynamics, transition_cov, dt):
+def get_particle_filter_step(H_likelihood, dynamics, transition_cov, dt):
 
-    def resample(particles, observation, command):
+    def step(particles, observation, command):
         N = particles.shape[0]
-        # compute the likelihood of each particle
-        likelihoods = []
-        new_particles = []
-        for p_state in particles:
-            p_statedot = dynamics(p_state, command)
-            p_state_next = p_state + p_statedot * dt
-            new_particles.append(p_state_next)
-            likelihoods.append(H_likelihood(p_state_next, p_statedot,
-                command, observation))
 
-        new_particles = np.array(new_particles)
+        # simulate the particles forward according to the command
+        particlesdot = dynamics(particles, command)
+        new_particles = particles + particlesdot * dt
+
+        # compute the likelihood of each particle
+        likelihoods = H_likelihood(new_particles, particlesdot,
+                command, observation)
+
         # and from the likelihoods, a distribution over the particles
-        likelihoods = np.array(likelihoods)
         probs = likelihoods/likelihoods.sum()
         # resample new particles
         new_indices = np.random.choice(np.arange(N), size=N, p=probs)
         new_particles = new_particles[new_indices]
-        # and add update noise
-        new_particles += multivariate_normal.rvs(cov=transition_cov, size=N)
+        # and add update
+        # NOTE(izzy) here, noise is proportional to simulation step size
+        # if the vehicle moves farther, we are less certain of its location
+        new_particles += multivariate_normal.rvs(cov=transition_cov*dt, size=N)
         return new_particles
 
-    return resample
+    return step

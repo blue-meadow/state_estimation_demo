@@ -3,7 +3,7 @@ import numpy as np
 from dynamics import simple_2d_dynamics, simple_2d_transition_cov
 from observation import simple_2d_H_sample, \
     simple_2d_H_likelihood
-from particle_filter import get_particle_filter_resample, get_initial_particles
+from particle_filter import get_particle_filter_step, get_initial_particles
 
 
 def simple_2d_get_initial():
@@ -24,11 +24,11 @@ def simple_2d_step(state, command, particles, dt):
 
     # ----------------- and this update state estimator -----------------
 
-    # get function to resample particles
-    resample = get_particle_filter_resample(simple_2d_H_likelihood,
+    # get function to step particles
+    step = get_particle_filter_step(simple_2d_H_likelihood,
         simple_2d_dynamics, simple_2d_transition_cov, dt)
 
-    # resample the particles based on the observation
-    new_particles = resample(particles, observation, command)
+    # step the particles based on the observation
+    new_particles = step(particles, observation, command)
 
     return next_state, new_particles
