@@ -1,8 +1,8 @@
 import numpy as np
 
 from dynamics import simple_2d_dynamics, simple_2d_transition_cov
-from observation import simple_2d_acc_gyro_mag_sample, \
-    simple_2d_acc_gyro_mag_likelihood
+from observation import simple_2d_H_sample, \
+    simple_2d_H_likelihood
 from particle_filter import get_particle_filter_resample, get_initial_particles
 
 
@@ -15,16 +15,17 @@ def simple_2d_step(state, command, particles, dt):
     # ----------------- this performs the simulation -----------------
 
     # simple euler step state update
-    next_state = state + simple_2d_dynamics(state, command) * dt
+    statedot = simple_2d_dynamics(state, command)
+    next_state = state + statedot * dt
     # get a corresponding observation
-    # NOTE(izzy): this is a little dubious because we're using the 
-    # same command on the next timestep to compute acceleration
-    observation = simple_2d_acc_gyro_mag_sample(next_state, command)
+    # NOTE(izzy): this is a little dubious because we're using the
+    # acceleration from the previous timestep
+    observation = simple_2d_H_sample(next_state, statedot, command)
 
     # ----------------- and this update state estimator -----------------
 
     # get function to resample particles
-    resample = get_particle_filter_resample(simple_2d_acc_gyro_mag_likelihood,
+    resample = get_particle_filter_resample(simple_2d_H_likelihood,
         simple_2d_dynamics, simple_2d_transition_cov, dt)
 
     # resample the particles based on the observation

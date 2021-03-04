@@ -6,8 +6,7 @@ def get_initial_particles(N, initial_state, transition_cov):
     return multivariate_normal.rvs(mean=initial_state,
         cov=transition_cov, size=N)
 
-def get_particle_filter_resample(observation_likelihood_function,
-                                 dynamics, transition_cov, dt):
+def get_particle_filter_resample(H_likelihood, dynamics, transition_cov, dt):
 
     def resample(particles, observation, command):
         N = particles.shape[0]
@@ -15,10 +14,11 @@ def get_particle_filter_resample(observation_likelihood_function,
         likelihoods = []
         new_particles = []
         for p_state in particles:
-            p_state_next = p_state + dynamics(p_state, command) * dt
-            likelihoods.append(observation_likelihood_function(
-                p_state_next, command, observation))
+            p_statedot = dynamics(p_state, command)
+            p_state_next = p_state + p_statedot * dt
             new_particles.append(p_state_next)
+            likelihoods.append(H_likelihood(p_state_next, p_statedot,
+                command, observation))
 
         new_particles = np.array(new_particles)
         # and from the likelihoods, a distribution over the particles
