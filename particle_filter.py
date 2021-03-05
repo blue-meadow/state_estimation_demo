@@ -6,9 +6,9 @@ def get_initial_particles(N, initial_state, transition_cov):
     return multivariate_normal.rvs(mean=initial_state,
         cov=transition_cov, size=N)
 
-def get_particle_filter_step(H_likelihood, dynamics, transition_cov, dt):
+def get_particle_filter_step(dynamics, H_likelihood, transition_cov):
 
-    def step(particles, observation, command):
+    def step(particles, observation, command, dt):
         N = particles.shape[0]
 
         # simulate the particles forward according to the command
