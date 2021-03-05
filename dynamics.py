@@ -10,9 +10,9 @@ def simple_2d_dynamics(state, command):
     l_thrust, r_thrust = np.atleast_2d(command).T
 
     # compute the accelerations (including linear drag)
-    xddot = np.cos(theta) * (r_thrust + l_thrust) - xdot * 0.95
-    yddot = np.sin(theta) * (r_thrust + l_thrust) - ydot * 0.9
-    thetaddot = r_thrust - l_thrust - thetadot * 0.99
+    xddot = np.cos(theta) * (r_thrust + l_thrust) - xdot * np.abs(xdot) * 0.95
+    yddot = np.sin(theta) * (r_thrust + l_thrust) - ydot * np.abs(ydot) * 0.9
+    thetaddot = r_thrust - l_thrust - thetadot * np.abs(thetadot) * 0.95
 
     # and return the time derivative of the state
     statedot = np.stack([xdot, ydot, thetadot, xddot, yddot, thetaddot]).T
