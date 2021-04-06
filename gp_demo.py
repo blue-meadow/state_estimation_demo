@@ -142,7 +142,10 @@ def get_slice_vectorized(f, res, z):
 # ESTIMATION
 ###############################################################################
 
-if __name__ == '__main__':
+def generate_trajectory():
+    """
+    Generates a random trajectory of waypoints.
+    """
     # create initial state
     pos = np.array([0, 0, -2])
     rot = R.from_euler('xyz', np.radians([0, 0, 0])).as_quat()
@@ -156,10 +159,30 @@ if __name__ == '__main__':
     print('Press q to continue.')
     animate(X, U, stepsize=50, wps=ctx)
 
+    print('Saving simulated trajectory.')
+    np.save('./output/gp_demo/X.npy', X, allow_pickle=True)
+
+
+def simulate_concentration_map(X, N_samples, data_name, data_range=[0, 10], cmap='viridis'):
+    """
+    Simulates a concentration field and uses a Gaussian process to estimate it from samples.
+
+    X (np.ndarray) : Shape (N, 13) matrix of simulated vehicle states.
+    N_samples (int) : Number of points to subsample.
+    data_name (str) : Name of the fake concentration we're measuring.
+    """
+    assert(N_samples > 100)
+
     print('Simulating observations from the map.')
     env = PerlinNoise(octaves=0.3)  # serve as concentration map
-    positions = X[::max(1, X.shape[0]//1000), :3] # subsample to ~1000 points
+
+    positions = X[::max(1, X.shape[0]//N_samples), :3] # subsample to ~1000 points
     observations = np.array([env(p) for p in positions])
+
+    # Scale the observations based on the reasonable data values.
+    mean = (data_range[1] + data_range[0]) / 2.0
+    scale = data_range[1] - data_range[0]
+    observations = scale*(observations + mean) / 2.0
 
     print('Gaussian process regression.')
     kernel = ConstantKernel(1.0, (1e-3, 1e3)) * RBF(10, (1e-2, 1e2))
@@ -171,6 +194,7 @@ if __name__ == '__main__':
     estimated_map = get_slice_vectorized(gpr.predict, 100, z=-2)
     standard_deviation_map = get_slice_vectorized(
         lambda x: gpr.predict(x, return_std=True)[1], 100, z=-2)
+
     fig, axs = plt.subplots(1,3)
     axs[0].imshow(ground_truth_map)
     axs[0].set_title('Ground Truth')
@@ -179,3 +203,9 @@ if __name__ == '__main__':
     axs[2].imshow(standard_deviation_map)
     axs[2].set_title('Variance')
     plt.show()
+
+
+if __name__ == '__main__':
+    # generate_trajectory()
+    X = np.load('./output/gp_demo/X.npy')
+    simulate_concentration_map(X, 1000, "Dissolved Oxygen", [4.0, 8.0])
