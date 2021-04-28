@@ -1,15 +1,22 @@
 # This import registers the 3D projection, but is otherwise unused.
 from mpl_toolkits.mplot3d import Axes3D  # noqa: F401 unused import
 
+import datetime
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib import rcParams
+import matplotlib.dates as mdates
 from mpl_toolkits.mplot3d import Axes3D
 
 rcParams['font.family'] = 'monospace'
 
 from perlin_noise import PerlinNoise
 
+
+COLOR1 = "#09ff00"
+COLOR2 = "#00fff7"
+COLOR3 = "#1500ff"
+COLOR4 = "#a200ff"
 
 class FarmLayout(object):
   """
@@ -124,7 +131,7 @@ def plot_dissox():
   perlin1 = PerlinNoise(octaves=0.1)
   dissox = get_slice(lambda x: perlin1(x), 5, farm_layout.xlim, farm_layout.ylim, -depth)
   dissox = scale_data(dissox, vmin=6.7, vmax=8.1)
-  im = ax.imshow(dissox, cmap="viridis", origin="lower",
+  im = ax.imshow(dissox, cmap="cool", origin="lower",
       extent=(farm_layout.xlim[0], farm_layout.xlim[1], farm_layout.ylim[0], farm_layout.ylim[1]))
   ax.set_title("Dissolved Oxygen (mg/L) @ {:.1f}m".format(depth))
   plt.colorbar(im)
@@ -137,7 +144,7 @@ def plot_nutrients():
   perlin1 = PerlinNoise(octaves=0.05)
   data = get_slice(lambda x: perlin1(x), 5, farm_layout.xlim, farm_layout.ylim, -depth)
   data = scale_data(data, vmin=0.3, vmax=2.3)
-  im = ax.imshow(data, cmap="magma", origin="lower",
+  im = ax.imshow(data, cmap="cool", origin="lower",
       extent=(farm_layout.xlim[0], farm_layout.xlim[1], farm_layout.ylim[0], farm_layout.ylim[1]))
   ax.set_title("Nitrogen Content (mg/L) @ {:.1f}m".format(depth))
   plt.colorbar(im)
@@ -207,23 +214,28 @@ def plot_depth_charts():
   fig.subplots_adjust(right=0.75)
 
   ax2 = ax.twinx()
-  ax3 = ax.twinx()
+  # ax3 = ax.twinx()
   ax2.set_ylabel("Temperature (deg C)")
   # ax3.set_ylabel("Illumination (PAR)")
 
   ds = np.linspace(0.0, 20.0, 30)
 
-  dissox = -0.793 * np.log(ds) + 2.2956 + 0.1*np.random.random(size=len(ds))
-  CO2 = 0.12*ds + 0.001*(ds-5)**3 + 0.1 + 0.15*np.random.random(size=len(ds))
+  dissox = -0.793 * np.log(ds) + 2.2956 + 0.2*np.random.random(size=len(ds))
+  CO2 = 0.12*ds + 0.001*(ds-5)**3 + 0.1 + 0.3*np.random.random(size=len(ds))
   light = 100.0 / (ds + 1.0)
-  temp = 19.0 - (0.15*(ds - 10))**3 - 0.1*ds + 0.05*np.random.random(size=len(ds))
+  temp = 19.0 - (0.05*(ds - 10))**3 - 0.1*ds + 0.2*np.random.random(size=len(ds))
 
-  p1, = ax.plot(ds, dissox, "rx", label="Dissolved Oxygen")
-  p2, = ax.plot(ds, CO2, "gx", label="Dissolved CO2")
-  p3, = ax2.plot(ds, temp, "bx", label="Ocean Temperature")
+  # color1 = "#00fffb"
+  # color2 = "#ff00e6"
+  # color3 = "#0800ff"
+
+  p1, = ax.plot(ds, dissox, "x", color=COLOR2, label="Dissolved Oxygen")
+  p2, = ax.plot(ds, CO2, "x", color=COLOR3, label="Dissolved CO2")
+  p3, = ax2.plot(ds, temp, "x", color=COLOR4, label="Ocean Temperature")
   # p4, = ax3.plot(ds, light, "yx", label="Light")
-  plt.title("Depth Plots")
-  plt.xlabel("Depth (m)")
+  # plt.title("Depth Plots")
+  # plt.xlabel("Depth (m)")
+  ax.set_xlabel("Depth (m)")
   ax.set_ylabel("Concentration (mg/L)")
   ax.legend(handles=[p1, p2, p3], loc='upper right')
   plt.show()
@@ -233,14 +245,27 @@ def plot_growth():
   fig = plt.figure()
   ax = fig.gca()
 
-  days = np.arange(0, 60)
+  # days = np.arange(0, 60)
+  datemin = np.datetime64('2021-01-01')
+  datemax = np.datetime64('2021-04-28')
+  dates = np.arange(datemin, datemax, dtype='datetime64[D]', step=2)
+  days = 2.0 * np.arange(0, len(dates), step=1)
+  growth = 40.0 + 0.6*days + 3.6*np.sin(days*0.1 - 10) + 6.0*np.random.random(size=len(days))
 
-  growth = 40.0 + 0.6*days + 3.6*np.sin(days*0.1 - 10) + 3.9*np.random.random(size=len(days))
+  # fmt_week = mdates.WeekdayLocator(interval=1)
+  fmt_week = mdates.DayLocator(bymonthday=[1, 5, 10, 15, 20, 25, 30])
+  ax.xaxis.set_minor_locator(fmt_week)
+  ax.xaxis.set_major_formatter(mdates.DateFormatter('%m/%d'))
+  ax.set_xlim(datemin, datemax)
 
-  ax.plot(days, growth, "gx")
-  ax.set_xlabel("day")
-  ax.set_ylabel("average frond length (cm)")
-  ax.set_title("Kelp Growth (last 60 days)")
+  # Format the coords message box, i.e. the numbers displayed as the cursor moves
+  # across the axes within the interactive GUI.
+  ax.format_xdata = mdates.DateFormatter('%m/%d')
+
+  ax.bar(dates, growth, color=COLOR1, width=0.9)
+  ax.xaxis_date()
+  ax.set_ylabel("Average Frond Length (cm)")
+  ax.set_title("S. lattissima")
   plt.show()
 
 # plot_dissox()
@@ -248,5 +273,5 @@ def plot_growth():
 
 # plot_currents_3d()
 # plot_current_speed_slices()
-# plot_depth_charts()
-plot_growth()
+plot_depth_charts()
+# plot_growth()
