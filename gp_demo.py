@@ -138,9 +138,6 @@ def get_slice_vectorized(f, res, z):
     coords = np.stack([xs, ys, zs]).reshape([3, -1]).T
     return f(coords).reshape([res, res])
 
-###############################################################################
-# ESTIMATION
-###############################################################################
 
 if __name__ == '__main__':
     # create initial state
