@@ -7,26 +7,11 @@ from scipy.spatial.transform import Rotation as R
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import RBF, ConstantKernel
 
+from dynamics import simple_3d_dynamics as dynamics
+
 ###############################################################################
 # SIMULATION
 ###############################################################################
-
-def dynamics(x, u):
-    pos, rot, vel, ang_vel = np.split(x, [3, 7, 10])
-    thrust, pitch, yaw = u
-    rot = R.from_quat(rot)
-
-    # assume a small roll stabilization force gets generated (by buoyancy)
-    roll = -0.3 * rot.apply([0,1,0]).dot([0,0,1])
-
-    # compute forces from drag and from thrusters
-    drag = 1. * vel**2 * np.sign(vel)
-    acc = rot.apply([thrust, 0, 0]) - drag
-
-    ang_drag = 5. * ang_vel**2 * np.sign(ang_vel)
-    ang_acc = rot.apply([roll, pitch, yaw]) - ang_drag
-
-    return np.concatenate([vel, ang_vel, acc, ang_acc])
 
 def euler_step(x, u, dt):
     # apply the dynamics update and break out the state vectors
